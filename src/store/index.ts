@@ -1,9 +1,19 @@
-import { createStore } from 'vuex';
-
+import { createStore, Store, useStore as baseUseStore } from 'vuex'
+import type { InjectionKey } from 'vue'
+import type { RootState } from './type'
+/** 子模块 */
 import admin from './modules/admin'
 
-export default createStore({
+export const key: InjectionKey<Store<RootState>> = Symbol()
+
+export const store = createStore<RootState>({
     modules: {
         admin
     }
-}) as any;
+})
+
+export function useStore() {
+    return baseUseStore(key)
+}
+
+export default store
