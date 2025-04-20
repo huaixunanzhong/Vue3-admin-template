@@ -2,7 +2,7 @@ import request from '@/plugins/request'
 
 export function AccountLogin(data: Record<string, any>) {
     return request({
-        url: 'user/login',
+        url: '/user/login',
         method: 'post',
         data
     })

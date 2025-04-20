@@ -35,7 +35,7 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import ICopyright from '@/components/copyright/index.vue'
 import IHeaderI18n from '@/layouts/basic-layout/header-i18n/index.vue'
 import { useStore } from '@/store'
@@ -49,11 +49,11 @@ const store = useStore()
 const router = useRouter()
 const route = useRoute()
 
-const showI18n = store.state.admin.layout.showI18n
+const showI18n = computed(() => store.state.admin.layout.showI18n)
 
 const autoLogin = ref(true)
 
-const login = () => store.dispatch('admin/account/login')
+const login = (opt: any) => store.dispatch('admin/account/login', opt)
 /**
  * @description 登录
  * 表单校验已有 View UI Plus 自动完成，如有需要修改，请阅读 View UI Plus 文档

@@ -52,7 +52,6 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
     (config) => {
-        console.log(config, 'config')
         return merge(config, Setting.request.requestConfig(config, util))
     },
     (error) => {
@@ -66,7 +65,6 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
     (response) => {
-        console.log(response, 'response')
         // dataAxios 是 axios 返回数据中的 data
         const dataAxios = response.data
         // 这个状态码是和后端约定的

@@ -17,7 +17,7 @@ import { MenuList } from '@/api/menu'
 import Setting from '@/setting'
 import menuSider from '@/menu/sider'
 import { MenuState } from './types/menu.ts'
-import { GetterTree, MutationTree } from 'vuex'
+import { ActionContext, ActionTree, GetterTree, MutationTree, Module } from 'vuex'
 import { RootState } from '@/store/type.ts'
 
 // 根据 menu 配置的权限，过滤菜单
@@ -58,9 +58,11 @@ const state: MenuState = {
     headerMenuBadge: Setting.badge.headerMenuBadge
 }
 
-const getters: GetterTree<MenuState, RootState> = {
+const getters: GetterTree<MenuState, RootState> & {
+    hideSider: (state: MenuState, getters: any) => boolean
+} = {
     /** 根据 user 里登录用户权限，对侧边菜单进行鉴权过滤 */
-    filterSider(state: any, _: any, rootState: any) {
+    filterSider(state, _: any, rootState) {
         const userInfo = rootState.admin.user.info
         // @权限
         const access = userInfo.access
@@ -71,7 +73,7 @@ const getters: GetterTree<MenuState, RootState> = {
         }
     },
     /** 根据 user 里登录用户权限，对顶栏菜单进行鉴权过滤 */
-    filterHeader(state: any, _getter: any, rootState: any) {
+    filterHeader(state, _getter: any, rootState) {
         const userInfo = rootState.admin.user.info
         // @权限
         const access = userInfo.access
@@ -104,7 +106,7 @@ const getters: GetterTree<MenuState, RootState> = {
         }
     },
     /** 当前 header 的全部信息 */
-    currentHeader(state: any) {
+    currentHeader(state) {
         return state.header.find((item: any) => item.name === state.headerName)
     },
     /** 在当前 header 下，是否隐藏 sider（及折叠按钮） */
@@ -118,35 +120,35 @@ const getters: GetterTree<MenuState, RootState> = {
 
 const mutations: MutationTree<MenuState> = {
     /** 设置侧边栏菜单 */
-    setSider(state: any, menu: any) {
+    setSider(state, menu: any) {
         state.sider = menu
     },
     /** 设置顶栏菜单 */
-    setHeader(state: any, menu: any) {
+    setHeader(state, menu: any) {
         state.header = menu
     },
     /** 设置当前顶栏菜单 name name:headerName */
-    setHeaderName(state: any, name: any) {
+    setHeaderName(state, name: any) {
         state.headerName = name
     },
     /** 设置当前所在菜单的 path，用于侧栏菜单高亮当前项  path: fullPath*/
-    setActivePath(state: any, path: any) {
+    setActivePath(state, path: any) {
         state.activePath = path
     },
     /** 设置当前所在菜单的全部展开父菜单的 names 集合 names: openNames */
-    setOpenNames(state: any, names: any) {
+    setOpenNames(state, names: any) {
         state.openNames = names
     },
     /** 设置所有菜单 */
-    setMenuSider(state: any, menuSider: any) {
+    setMenuSider(state, menuSider: any) {
         state.menuSider = menuSider
     },
     /** 设置全部的侧边菜单的徽标 */
-    setAllSiderMenuBadge(state: any, data: any) {
+    setAllSiderMenuBadge(state, data: any) {
         state.siderMenuBadge = data
     },
     /** 新增或修改某个侧边菜单的徽标 */
-    setSiderMenuBadge(state: any, { path, badge }: any) {
+    setSiderMenuBadge(state, { path, badge }: any) {
         const siderMenuBadge = cloneDeep(state.siderMenuBadge)
         const menuIndex = siderMenuBadge.findIndex((item: any) => item.path === path)
         if (menuIndex >= 0) {
@@ -157,16 +159,16 @@ const mutations: MutationTree<MenuState> = {
         }
     },
     /** 删除某个侧边菜单的徽标 */
-    removeSiderMenuBadge(state: any, path: any) {
+    removeSiderMenuBadge(state, path: any) {
         const menuIndex = state.siderMenuBadge.findIndex((item: any) => item.path === path)
         if (menuIndex >= 0) state.siderMenuBadge.splice(menuIndex, 1)
     },
     /** 设置全部的顶栏菜单的徽标 */
-    setAllHeaderMenuBadge(state: any, data: any) {
+    setAllHeaderMenuBadge(state, data: any) {
         state.headerMenuBadge = data
     },
     /** 新增或修改某个顶栏菜单的徽标 */
-    setHeaderMenuBadge(state: any, { path, badge }: any) {
+    setHeaderMenuBadge(state, { path, badge }: any) {
         const headerMenuBadge = cloneDeep(state.headerMenuBadge)
         const menuIndex = headerMenuBadge.findIndex((item: any) => item.path === path)
         if (menuIndex >= 0) {
@@ -177,15 +179,15 @@ const mutations: MutationTree<MenuState> = {
         }
     },
     /** 删除某个顶栏菜单的徽标 */
-    removeHeaderMenuBadge(state: any, path: any) {
+    removeHeaderMenuBadge(state, path: any) {
         const menuIndex = state.headerMenuBadge.findIndex((item: any) => item.path === path)
         if (menuIndex >= 0) state.headerMenuBadge.splice(menuIndex, 1)
     }
 }
 
-const actions = {
+const actions: ActionTree<MenuState, RootState> = {
     /** 设置菜单（动态+静态） */
-    setMenuList({ commit }: any, to: Record<any, any> = {}) {
+    setMenuList({ commit }: ActionContext<MenuState, RootState>, to: Record<any, any> = {}) {
         // 只动态菜单设置顶栏菜单
         if (Setting.dynamicMenu) {
             // 设置顶栏菜单
@@ -216,7 +218,7 @@ const actions = {
     },
     /** 动态获取菜单 */
     /** 是否加载菜单，需传 $route 信息 */
-    getMenuList({ dispatch }: any, loadMenu: any) {
+    getMenuList({ dispatch }: ActionContext<MenuState, RootState>, loadMenu: any) {
         return new Promise((resolve, reject) => {
             MenuList()
                 .then((res: any) => {
@@ -234,10 +236,11 @@ const actions = {
         })
     }
 }
+
 export default {
     namespaced: true,
     state,
     getters,
     mutations,
     actions
-}
+} as Module<MenuState, RootState>

@@ -4,7 +4,7 @@ import type { RootState } from './type'
 /** 子模块 */
 import admin from './modules/admin'
 
-export const key: InjectionKey<Store<RootState>> = Symbol()
+export const key: InjectionKey<Store<RootState>> = Symbol('injectionKey')
 
 export const store = createStore<RootState>({
     modules: {

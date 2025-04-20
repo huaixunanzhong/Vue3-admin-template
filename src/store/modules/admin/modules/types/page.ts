@@ -1,11 +1,10 @@
-import Setting from '@/setting.ts'
 import type { RouteParams, LocationQuery } from 'vue-router'
 
 export interface PageState {
     // 可以在多页 tab 模式下显示的页面
     pool: any[]
     // 当前显示的多页面列表
-    opened: typeof Setting.page.opened
+    opened: (OpenedUpdatePayload & { name: string })[]
     // 当前页面
     current: string
     // 需要缓存的页面 name

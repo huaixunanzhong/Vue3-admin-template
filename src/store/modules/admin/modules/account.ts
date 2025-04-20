@@ -47,7 +47,7 @@ const actions: ActionTree<AccountState, RootState> = {
     },
     /** 退出登录 */
     async logout(
-        { dispatch },
+        { dispatch }: ActionContext<AccountState, RootState>,
         { confirm = false, vm = {} }: { confirm: boolean; vm: Record<any, any> } = {
             confirm: false,
             vm: {}
@@ -79,7 +79,7 @@ const actions: ActionTree<AccountState, RootState> = {
     },
     /** 注册 */
     register(
-        { dispatch },
+        { dispatch }: ActionContext<AccountState, RootState>,
         { mail = '', password = '', mobile = '', captcha = '' }: registerParams = {}
     ) {
         return new Promise(async (resolve, reject) => {
@@ -114,7 +114,10 @@ const actions: ActionTree<AccountState, RootState> = {
      */
 
     /** 用户登录后从持久化数据加载一系列的设置 */
-    load({ dispatch }: Record<string, any>, { loadOpenedTabs = true }: loadParams = {}) {
+    load(
+        { dispatch }: ActionContext<AccountState, RootState>,
+        { loadOpenedTabs = true }: loadParams = {}
+    ) {
         return new Promise(async (resolve) => {
             // 加载用户登录信息
             await dispatch('admin/user/load', null, { root: true })
