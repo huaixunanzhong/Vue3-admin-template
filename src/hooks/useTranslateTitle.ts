@@ -1,6 +1,9 @@
+import { getCurrentInstance } from 'vue'
+
 export const useTranslateTitle = () => {
-    const tTitle = (title: string) => {
-        const self: any = this
+    const instance = getCurrentInstance()
+    const tTitle = (title: any) => {
+        const self: any = instance
         if (title && title.indexOf('$t:') === 0) {
             return self['$t'](title.split('$t:')[1])
         } else {

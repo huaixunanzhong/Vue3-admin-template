@@ -1,19 +1,14 @@
-import { createStore, Store, useStore as baseUseStore } from 'vuex'
-import type { InjectionKey } from 'vue'
-import type { RootState } from './type'
-/** 子模块 */
-import admin from './modules/admin'
+import { createPinia } from 'pinia'
 
-export const key: InjectionKey<Store<RootState>> = Symbol('injectionKey')
+export * from './modules/account'
+export * from './modules/db'
+export * from './modules/i18n'
+export * from './modules/layout'
+export * from './modules/log'
+export * from './modules/menu'
+export * from './modules/page'
+export * from './modules/user'
 
-export const store = createStore<RootState>({
-    modules: {
-        admin
-    }
-})
+const pinia = createPinia()
 
-export function useStore() {
-    return baseUseStore(key)
-}
-
-export default store
+export default pinia

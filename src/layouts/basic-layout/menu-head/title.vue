@@ -1,6 +1,9 @@
 <template>
     <div class="i-layout-menu-head-title">
-        <span class="i-layout-menu-head-title-icon" v-if="(item.icon || item.custom || item.img) && !hideIcon">
+        <span
+            class="i-layout-menu-head-title-icon"
+            v-if="(item.icon || item.custom || item.img) && !hideIcon"
+        >
             <Icon :type="item.icon" v-if="item.icon" />
             <Icon :custom="item.custom" v-else-if="item.custom" />
             <img :src="item.img" v-else-if="item.img" />
@@ -9,43 +12,35 @@
         <Badge class="i-layout-menu-head-badge" v-if="badge && badgeData" v-bind="badgeData" />
     </div>
 </template>
- <script lang="ts">
-    /**
-     * 该组件除了 Menu，也被 Breadcrumb 使用过
-     * */
-    import { defineComponent } from 'vue';
-    import { mapState } from 'vuex';
-    import tTitle from '../mixins/translate-title';
+<script lang="ts" setup>
+/**
+ * 该组件除了 Menu，也被 Breadcrumb 使用过
+ * */
+import { computed } from 'vue'
+import { useTranslateTitle } from '@/hooks'
+import { storeToRefs } from 'pinia'
+import { useMenuStore } from '@/store'
+defineOptions({ name: 'iMenuHeadTitle' })
 
-    export default defineComponent({
-        name: 'iMenuHeadTitle',
-        mixins: [ tTitle ],
-        props: {
-            item: {
-                type: Object,
-                default () {
-                    return {}
-                }
-            },
-            hideIcon: {
-                type: Boolean,
-                default: false
-            },
-            badge: {
-                type: Boolean,
-                default: false
-            }
-        },
-        computed: {
-            ...mapState('admin/menu', [
-                'headerMenuBadge'
-            ]),
-            badgeData () {
-                let data = null;
-                const headerMenuBadge = this.headerMenuBadge.find((item:any) => item.path === this.item.path);
-                if (headerMenuBadge) data = headerMenuBadge;
-                return data;
-            }
-        }
-    })
+const { tTitle } = useTranslateTitle()
+const { headerMenuBadge } = storeToRefs(useMenuStore())
+interface Props {
+    item?: Record<any, any>
+    hideIcon?: boolean
+    badge?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+    item: () => ({}),
+    hideIcon: false,
+    badge: false
+})
+
+const badgeData = computed(() => {
+    let data = null
+    if (headerMenuBadge) {
+        data = headerMenuBadge.value.find((item: any) => item.path === props.item.path)
+    }
+    return data
+})
 </script>

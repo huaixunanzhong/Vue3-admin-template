@@ -1,6 +1,6 @@
 <template>
     <div class="page-account">
-        <div v-if="showI18n" class="page-account-header">
+        <div v-if="layoutStore.showI18n" class="page-account-header">
             <IHeaderI18n outside />
         </div>
         <div class="page-account-container">
@@ -35,25 +35,23 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import ICopyright from '@/components/copyright/index.vue'
 import IHeaderI18n from '@/layouts/basic-layout/header-i18n/index.vue'
-import { useStore } from '@/store'
+import { useAccountStore, useLayoutStore } from '@/store'
 import { useRoute, useRouter } from 'vue-router'
 
 defineOptions({
     name: 'page-account-login'
 })
 
-const store = useStore()
 const router = useRouter()
 const route = useRoute()
-
-const showI18n = computed(() => store.state.admin.layout.showI18n)
+const layoutStore = useLayoutStore()
+const accountStore = useAccountStore()
 
 const autoLogin = ref(true)
 
-const login = (opt: any) => store.dispatch('admin/account/login', opt)
 /**
  * @description 登录
  * 表单校验已有 View UI Plus 自动完成，如有需要修改，请阅读 View UI Plus 文档
@@ -61,7 +59,7 @@ const login = (opt: any) => store.dispatch('admin/account/login', opt)
 const handleSubmit = async (valid: any, values: any) => {
     if (valid) {
         const { username, password } = values
-        await login({
+        await accountStore.login({
             username,
             password
         })

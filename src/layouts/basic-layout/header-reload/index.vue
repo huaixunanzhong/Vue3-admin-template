@@ -1,25 +1,22 @@
 <template>
-    <span class="i-layout-header-trigger" :class="{ 'i-layout-header-trigger-min': showSiderCollapse }" @click="handleReload">
+    <span
+        class="i-layout-header-trigger"
+        :class="{ 'i-layout-header-trigger-min': showSiderCollapse }"
+        @click="handleReload"
+    >
         <Icon custom="i-icon i-icon-refresh" />
     </span>
 </template>
- <script lang="ts">
-    import { defineComponent } from 'vue';
-    import { mapState } from 'vuex';
+<script lang="ts" setup>
+import { storeToRefs } from 'pinia'
+import { useLayoutStore } from '@/store'
+defineOptions({ name: 'iHeaderReload' })
 
-    export default defineComponent({
-        name: 'iHeaderReload',
-        emits: ['on-reload'],
-        computed: {
-            ...mapState('admin/layout', [
-                'isMobile',
-                'showSiderCollapse'
-            ])
-        },
-        methods: {
-            handleReload () {
-                this.$emit('on-reload');
-            }
-        }
-    })
+const emit = defineEmits(['on-reload'])
+
+const { showSiderCollapse } = storeToRefs(useLayoutStore())
+
+const handleReload = () => {
+    emit('on-reload')
+}
 </script>

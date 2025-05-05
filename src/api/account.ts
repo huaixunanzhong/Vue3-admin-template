@@ -1,17 +1,21 @@
 import request from '@/plugins/request'
 
-export function AccountLogin(data: Record<string, any>) {
-    return request({
+export const Login = (data: Account.LoginParams) => {
+    return request.post<{ token: string }>({
         url: '/user/login',
-        method: 'post',
         data
     })
 }
 
-export function AccountRegister(data: Record<string, any>) {
-    return request({
+export const GetUserInfo = () => {
+    return request.get<Account.UserInfoResult>({
+        url: '/user/info'
+    })
+}
+
+export const Register = (data: Record<string, any>) => {
+    return request.post<User.UserInfoWidthToken>({
         url: '/api/register',
-        method: 'post',
         data
     })
 }

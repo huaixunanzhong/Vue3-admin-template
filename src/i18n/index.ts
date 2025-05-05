@@ -1,9 +1,9 @@
-import { createI18n } from 'vue-i18n';
-import store from '@/store/index';
-import messages from './locale';
-store.dispatch('admin/i18n/getLocale');
+import { createI18n } from 'vue-i18n'
+// import store from '@/store/index'
+import messages from './locale'
+// store.dispatch('admin/i18n/getLocale')
 
-const locale = store['state']['admin'].i18n.locale;
+const locale = 'en-US'
 
 export default createI18n({
     allowComposition: true,
@@ -11,4 +11,4 @@ export default createI18n({
     legacy: false,
     locale,
     messages
-}) as any;
+}) as any

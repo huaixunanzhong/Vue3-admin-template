@@ -1,31 +1,27 @@
-/**
- * 多语言
- * */
-import Languages from '@/i18n/locale'
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import Setting from '@/setting'
 import util from '@/libs/util'
-import { pathInit } from '@/store/modules/admin/modules/db'
-import { ActionTree } from 'vuex'
-import type { RootState } from '@/store/type.ts'
-import type { I18nState, SetLocaleParams } from './types/i18n.ts'
+import { pathInit } from '@/store/modules/db'
+import Languages from '@/i18n/locale'
+import type { RouteLocationNormalizedLoaded } from 'vue-router'
+import type { I18n } from 'vue-i18n'
 
 const savedLocaleKey = 'i18n-locale'
 
-const state: I18nState = {
-    locale: ''
-}
+const storeSetup = () => {
+    const locale = ref<I18n.Locale | ''>('')
 
-const actions: ActionTree<I18nState, RootState> = {
     /** 获取当前语言 */
-    getLocale({ state }: Record<string, any>) {
-        let locale
+    const getLocale = () => {
+        let language
 
         const db = util.db.get(
-            pathInit({
+            pathInit<I18n.Locale>({
                 dbName: 'database',
                 path: '',
                 user: true,
-                defaultValue: {}
+                defaultValue: 'zh-CN'
             })
         )
 
@@ -33,31 +29,36 @@ const actions: ActionTree<I18nState, RootState> = {
 
         // 先判断本地存储是否已有语言选择
         if (savedLocale) {
-            locale = savedLocale
+            language = savedLocale
         } else {
             // 判断是否开启自动识别语言
             if (Setting.i18n.auto) {
                 // 如果自动识别的语言，本地没有该语言包，则设置为默认语言
                 const navLang = navigator.language
                 if (Languages[navLang]) {
-                    locale = navLang
+                    language = navLang
                 } else {
-                    locale = Setting.i18n.default
+                    language = Setting.i18n.default
                 }
             } else {
-                locale = Setting.i18n.default
+                language = Setting.i18n.default
             }
 
             // 将初次的语言保存在本地
-            db.set(savedLocaleKey, locale).write()
+            db.set(savedLocaleKey, language).write()
         }
-        state.locale = locale
-    },
+        locale.value = language
+    }
     /** 设置当前语言 */
-    setLocale(
-        { state }: Record<string, any>,
-        { locale = Setting.i18n.default, vm }: SetLocaleParams
-    ) {
+    const setLocale = ({
+        language = Setting.i18n.default,
+        i18n,
+        route
+    }: {
+        language: any
+        i18n: I18n
+        route: RouteLocationNormalizedLoaded
+    }) => {
         const db = util.db.get(
             pathInit({
                 dbName: 'database',
@@ -68,25 +69,28 @@ const actions: ActionTree<I18nState, RootState> = {
         )
 
         // 将语言保存在本地
-        db.set(savedLocaleKey, locale).write()
+        db.set(savedLocaleKey, language).write()
 
         // 判断是否刷新页面
         if (Setting.i18n.refresh) {
             location.reload()
         } else {
             // 设置当前语言
-            state.locale = locale
+            locale.value = language as I18n.Locale
             // 设置 vue-i18n 的语言
-            vm.$i18n.locale = locale
+            i18n.global.locale = language
             // 更新网页标题
             util.title({
-                title: vm.$route.meta.title
+                title: route.meta.title
             })
         }
     }
+
+    return {
+        locale,
+        getLocale,
+        setLocale
+    }
 }
-export default {
-    namespaced: true,
-    state,
-    actions
-}
+
+export const useI18nStore = defineStore('i18n', storeSetup)

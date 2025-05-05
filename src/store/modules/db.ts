@@ -1,33 +1,16 @@
-/**
- * 持久化存储
- * 一般情况下，您无需修改此文件
- * */
+import { defineStore } from 'pinia'
 import util from '@/libs/util'
-import router from '@/router'
 import { cloneDeep } from 'lodash'
-import { ActionTree } from 'vuex'
-import { RootState } from '@/store/type.ts'
-import type {
-    DBState,
-    SetParams,
-    GetParams,
-    DatabaseParams,
-    DatabasePageParams,
-    PageSetParams,
-    PathInitParams
-} from '../modules/types/db.ts'
+import { useRouter } from 'vue-router'
 
-/**
- * @description 检查路径是否存在 不存在的话初始化
- * @returns {String} 可以直接使用的路径
- */
-function pathInit({
+/** 检查路径是否存在 不存在的话初始化 */
+export function pathInit<T = any>({
     dbName = 'database',
     path = '',
     user = true,
     validator = (_val: any) => true,
-    defaultValue = ''
-}: PathInitParams): string {
+    defaultValue
+}: DB.PathInitParams<T>): string {
     const uuid = util.cookies.get('uuid') || 'ghost-uuid'
     const currentPath = `${dbName}.${user ? `user.${uuid}` : 'public'}${path ? `.${path}` : ''}`
     const value = util.db.get(currentPath).value()
@@ -38,12 +21,15 @@ function pathInit({
     return currentPath
 }
 
-const actions: ActionTree<DBState, RootState> = {
+const storeSetup = () => {
+    const router = useRouter()
     /** 将数据存储到指定位置 路径不存在会自动初始化 效果类似于取值 dbName.path = value */
-    set(
-        _: Record<string, any>,
-        { dbName = 'database', path = '', value = '', user = false }: SetParams
-    ) {
+    const set = <T = unknown>({
+        dbName = 'database',
+        path = '',
+        value,
+        user = false
+    }: DB.DBSetOptions<T>) => {
         util.db
             .set(
                 pathInit({
@@ -54,18 +40,20 @@ const actions: ActionTree<DBState, RootState> = {
                 value
             )
             .write()
-    },
+    }
     /** 获取数据 效果类似于取值 dbName.path || defaultValue */
-    get(
-        _context: Record<string, any>,
-        { dbName = 'database', path = '', defaultValue = '', user = false }: GetParams
-    ) {
-        return new Promise((resolve) => {
+    const get = <T = unknown>({
+        dbName = 'database',
+        path = '',
+        defaultValue,
+        user = false
+    }: DB.DBGetOptions<T>) => {
+        return new Promise<T>((resolve) => {
             resolve(
                 cloneDeep(
                     util.db
                         .get(
-                            pathInit({
+                            pathInit<T>({
                                 dbName,
                                 path,
                                 user,
@@ -76,9 +64,9 @@ const actions: ActionTree<DBState, RootState> = {
                 )
             )
         })
-    },
+    }
     /** 获取存储数据库对象 */
-    database(_context: Record<string, any>, { user = false }: DatabaseParams = {}) {
+    const database = ({ user = false } = {}) => {
         return new Promise((resolve) => {
             resolve(
                 util.db.get(
@@ -91,9 +79,9 @@ const actions: ActionTree<DBState, RootState> = {
                 )
             )
         })
-    },
+    }
     /** 清空存储数据库对象 */
-    databaseClear(_context: Record<string, any>, { user = false }: DatabaseParams = {}) {
+    const databaseClear = ({ user = false } = {}) => {
         return new Promise((resolve) => {
             resolve(
                 util.db.get(
@@ -107,12 +95,9 @@ const actions: ActionTree<DBState, RootState> = {
                 )
             )
         })
-    },
+    }
     /** 获取存储数据库对象 [ 区分页面 ] */
-    databasePage(
-        _context: Record<string, any>,
-        { basis = 'fullPath', user = false }: DatabasePageParams = {}
-    ) {
+    const databasePage = ({ basis = 'fullPath', user = false } = {}) => {
         return new Promise((resolve) => {
             resolve(
                 util.db.get(
@@ -125,12 +110,9 @@ const actions: ActionTree<DBState, RootState> = {
                 )
             )
         })
-    },
+    }
     /** 清空存储数据库对象 [ 区分页面 ] */
-    databasePageClear(
-        _context: Record<string, any>,
-        { basis = 'fullPath', user = false }: DatabasePageParams = {}
-    ) {
+    const databasePageClear = ({ basis = 'fullPath', user = false } = {}) => {
         return new Promise((resolve) => {
             resolve(
                 util.db.get(
@@ -144,12 +126,9 @@ const actions: ActionTree<DBState, RootState> = {
                 )
             )
         })
-    },
+    }
     /** 快速将页面当前的数据 ( $data ) 持久化 */
-    pageSet(
-        _context: Record<string, any>,
-        { instance, basis = 'fullPath', user = false }: PageSetParams
-    ) {
+    const pageSet = ({ instance, basis = 'fullPath', user = false }: any) => {
         return new Promise((resolve) => {
             resolve(
                 util.db.get(
@@ -163,12 +142,9 @@ const actions: ActionTree<DBState, RootState> = {
                 )
             )
         })
-    },
+    }
     /** 快速获取页面快速持久化的数据 */
-    pageGet(
-        _context: Record<string, any>,
-        { instance, basis = 'fullPath', user = false }: PageSetParams
-    ) {
+    const pageGet = ({ instance, basis = 'fullPath', user = false }: any) => {
         return new Promise((resolve) => {
             resolve(
                 cloneDeep(
@@ -185,12 +161,9 @@ const actions: ActionTree<DBState, RootState> = {
                 )
             )
         })
-    },
+    }
     /** 清空页面快照 */
-    pageClear(
-        _context: Record<string, any>,
-        { basis = 'fullPath', user = false }: Omit<PageSetParams, 'instance'>
-    ) {
+    const pageClear = ({ basis = 'fullPath', user = false }) => {
         return new Promise((resolve) => {
             resolve(
                 util.db.get(
@@ -205,10 +178,18 @@ const actions: ActionTree<DBState, RootState> = {
             )
         })
     }
-}
-export { pathInit }
 
-export default {
-    namespaced: true,
-    actions
+    return {
+        set,
+        get,
+        database,
+        databaseClear,
+        databasePage,
+        databasePageClear,
+        pageSet,
+        pageGet,
+        pageClear
+    }
 }
+
+export const useDbStore = defineStore('db', storeSetup)

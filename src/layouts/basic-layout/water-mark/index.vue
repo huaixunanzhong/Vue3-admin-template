@@ -4,12 +4,11 @@
 <script lang="ts" setup>
 import { computed, CSSProperties } from 'vue'
 import getWaterMarkCanvas from '@/libs/water-mark'
-import { useStore } from '@/store'
+import { storeToRefs } from 'pinia'
+import { useLayoutStore } from '@/store'
 defineOptions({ name: 'i-water-mark' })
 
-const store = useStore()
-
-const waterMark = computed(() => store.state.admin.layout.waterMark)
+const { waterMark } = storeToRefs(useLayoutStore())
 
 const styles = computed<CSSProperties>(() => {
     const url = getWaterMarkCanvas(waterMark.value.text, waterMark.value.options)

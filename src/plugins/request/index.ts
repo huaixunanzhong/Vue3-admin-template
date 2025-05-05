@@ -1,9 +1,8 @@
-import axios from 'axios'
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { merge } from 'lodash'
-import store from '@/store'
 import util from '@/libs/util'
 import Setting from '@/setting'
-
+import { useLogStore } from '@/store'
 import { Message, Notice } from 'view-ui-plus'
 
 // 创建一个错误
@@ -15,8 +14,9 @@ function errorCreate(msg: any) {
 
 // 记录和显示错误
 function errorLog(err: any) {
+    const logStore = useLogStore()
     // 添加到日志
-    store.dispatch('admin/log/push', {
+    logStore.push({
         message: '数据请求异常',
         type: 'error',
         meta: {
@@ -64,7 +64,8 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-    (response) => {
+    (response: AxiosResponse<Api.BaseResult>) => {
+        console.log(response)
         // dataAxios 是 axios 返回数据中的 data
         const dataAxios = response.data
         // 这个状态码是和后端约定的
@@ -79,10 +80,10 @@ service.interceptors.response.use(
                 case 0:
                     // [ 示例 ] code === 0 代表没有错误
                     return dataAxios.data
-                case 'xxx':
-                    // [ 示例 ] 其它和后台约定的 code
-                    errorCreate(`[ code: xxx ] ${dataAxios.msg}: ${response.config.url}`)
-                    break
+                // case 'xxx':
+                //     // [ 示例 ] 其它和后台约定的 code
+                //     errorCreate(`[ code: xxx ] ${dataAxios.msg}: ${response.config.url}`)
+                //     break
                 default:
                     // 不是正确的 code
                     errorCreate(`${dataAxios.msg}: ${response.config.url}`)
@@ -136,4 +137,46 @@ service.interceptors.response.use(
     }
 )
 
-export default service
+/** 封装一层接口方法,方便使用和定义TS */
+const request = async <T = unknown>(config: AxiosRequestConfig): Promise<T> => {
+    // 将 POST | PUT 请求的参数放入 data 中，并清空 params
+    if (config.method === 'POST' || config.method === 'PUT') {
+        if (config.params) {
+            config.data = { ...config.data, ...config.params }
+            config.params = {}
+        }
+    }
+    return await service.request<T, any>({ ...config })
+}
+
+const requestMethods = {
+    get<T = unknown>(config?: AxiosRequestConfig): Promise<T> {
+        return request({
+            ...config,
+            method: 'get'
+        })
+    },
+    post<T = unknown>(config?: AxiosRequestConfig): Promise<T> {
+        return request({
+            ...config,
+            method: 'post'
+        })
+    },
+    put<T = unknown>(config?: AxiosRequestConfig): Promise<T> {
+        return request({
+            ...config,
+            method: 'put'
+        })
+    },
+    delete<T = unknown>(config?: AxiosRequestConfig): Promise<T> {
+        return request({
+            ...config,
+            method: 'delete'
+        })
+    },
+    // 后台部分更新时使用,具体使用按照后台来
+    patch<T>(config: AxiosRequestConfig): Promise<T> {
+        return request({ ...config, method: 'patch' })
+    }
+}
+export default requestMethods

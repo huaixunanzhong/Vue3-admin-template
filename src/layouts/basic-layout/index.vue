@@ -82,7 +82,6 @@
 </template>
 <script lang="ts" setup>
 import { nextTick, ref, computed, watch, onMounted, onBeforeUnmount, useTemplateRef } from 'vue'
-import { useStore } from '@/store'
 
 import IMenuHead from './menu-head/index.vue'
 import IMenuSide from './menu-side/index.vue'
@@ -106,12 +105,40 @@ import Setting from '@/setting'
 import { requestAnimation } from '@/libs/util'
 import { useRoute } from 'vue-router'
 import { Content, Drawer, Layout, Sider } from 'view-ui-plus'
+import { useLayoutStore, useMenuStore, usePageStore } from '@/store'
+import { storeToRefs } from 'pinia'
 defineOptions({ name: 'BasicLayout' })
 
-const store = useStore()
 const route = useRoute()
+const layoutStore = useLayoutStore()
+const pageStore = usePageStore()
+const {
+    isMobile,
+    headerStick,
+    tabs,
+    tabsFix,
+    siderFix,
+    headerFix,
+    headerHide,
+    headerMenu,
+    isTablet,
+    isDesktop,
+    menuCollapse,
+    showMobileLogo,
+    showSearch,
+    showNotice,
+    showFullscreen,
+    showSiderCollapse,
+    showBreadcrumb,
+    showLog,
+    showI18n,
+    showReload,
+    enableSetting
+} = storeToRefs(layoutStore)
+const { hideSider } = storeToRefs(useMenuStore())
+const { keepAlive } = storeToRefs(pageStore)
 
-const breadcrumb = useTemplateRef('breadcrumb')
+const breadcrumbRef = useTemplateRef('breadcrumb')
 const menuHead = useTemplateRef('menuHead')
 
 const showDrawer = ref(false)
@@ -120,32 +147,6 @@ const headerVisible = ref(true)
 const oldScrollTop = ref(0)
 const isDelayHideSider = ref(false) // hack，当从隐藏侧边栏的 header 切换到正常 header 时，防止 Logo 抖动
 const loadRouter = ref(true)
-
-const siderTheme = computed(() => store.state.admin.layout.siderTheme)
-const headerTheme = computed(() => store.state.admin.layout.headerTheme)
-const headerStick = computed(() => store.state.admin.layout.headerStick)
-const tabs = computed(() => store.state.admin.layout.tabs)
-const tabsFix = computed(() => store.state.admin.layout.tabsFix)
-const siderFix = computed(() => store.state.admin.layout.siderFix)
-const headerFix = computed(() => store.state.admin.layout.headerFix)
-const headerHide = computed(() => store.state.admin.layout.headerHide)
-const headerMenu = computed(() => store.state.admin.layout.headerMenu)
-const isMobile = computed(() => store.state.admin.layout.isMobile)
-const isTablet = computed(() => store.state.admin.layout.isTablet)
-const isDesktop = computed(() => store.state.admin.layout.isDesktop)
-const menuCollapse = computed(() => store.state.admin.layout.menuCollapse)
-const showMobileLogo = computed(() => store.state.admin.layout.showMobileLogo)
-const showSearch = computed(() => store.state.admin.layout.showSearch)
-const showNotice = computed(() => store.state.admin.layout.showNotice)
-const showFullscreen = computed(() => store.state.admin.layout.showFullscreen)
-const showSiderCollapse = computed(() => store.state.admin.layout.showSiderCollapse)
-const showBreadcrumb = computed(() => store.state.admin.layout.showBreadcrumb)
-const showLog = computed(() => store.state.admin.layout.showLog)
-const showI18n = computed(() => store.state.admin.layout.showI18n)
-const showReload = computed(() => store.state.admin.layout.showReload)
-const enableSetting = computed(() => store.state.admin.layout.enableSetting)
-const keepAlive = computed(() => store.state.admin.page.keepAlive)
-const hideSider = computed(() => store.getters['admin/menu/hideSider'])
 
 // 如果开启 headerMenu，且当前 header 的 hideSider 为 true，则将顶部按 headerStick 处理
 // 这时，即使没有开启 headerStick，仍然按开启处理
@@ -166,7 +167,7 @@ const showHeader = computed(() => {
 })
 
 const headerClasses = computed(() => [
-    `i-layout-header-color-${headerTheme.value}`,
+    `i-layout-header-color-${layoutStore.headerTheme}`,
     {
         'i-layout-header-fix': headerFix.value,
         'i-layout-header-fix-collapse': headerFix.value && menuCollapse.value,
@@ -192,7 +193,7 @@ const headerStyle = computed(() => {
 
 const siderClasses = computed(() => ({
     'i-layout-sider-fix': siderFix.value,
-    'i-layout-sider-dark': siderTheme.value === 'dark'
+    'i-layout-sider-dark': layoutStore.siderTheme === 'dark'
 }))
 
 const contentClasses = computed(() => ({
@@ -210,7 +211,7 @@ const insideClasses = computed(() => ({
 
 const drawerClasses = computed(() => {
     let className = 'i-layout-drawer'
-    if (siderTheme.value === 'dark') className += ' i-layout-drawer-dark'
+    if (layoutStore.siderTheme === 'dark') className += ' i-layout-drawer-dark'
     return className
 })
 
@@ -234,11 +235,6 @@ watch(
         }
     }
 )
-
-const updateMenuCollapse = (collapse: boolean) =>
-    store.dispatch('admin/layout/updateMenuCollapse', collapse)
-const keepAlivePush = (name: string) => store.dispatch('admin/page/keepAlivePush', name)
-const keepAliveRemove = (name: string) => store.dispatch('admin/page/keepAliveRemove', name)
 
 const handleToggleDrawer = (state: any) => {
     if (typeof state === 'boolean') {
@@ -270,10 +266,9 @@ const handleScroll = () => {
 }
 
 const handleHeaderWidthChange = () => {
-    const $breadcrumb: any = breadcrumb.value
-    if ($breadcrumb) {
-        $breadcrumb['handleGetWidth']()
-        $breadcrumb['handleCheckWidth']()
+    if (breadcrumbRef.value) {
+        breadcrumbRef.value.handleGetWidth()
+        breadcrumbRef.value.handleCheckWidth()
     }
     const $menuHead = menuHead.value
     if ($menuHead) {
@@ -286,18 +281,18 @@ const handleReload = () => {
     const isCurrentPageCache = keepAlive.value.indexOf(route.name) > -1
     const pageName = route.name as string
     if (isCurrentPageCache) {
-        keepAliveRemove(pageName)
+        pageStore.keepAliveRemove(pageName)
     }
     loadRouter.value = false
     nextTick(() => {
         loadRouter.value = true
         if (isCurrentPageCache) {
-            keepAlivePush(pageName)
+            pageStore.keepAlivePush(pageName)
         }
     })
 }
 
-if (isTablet.value && showSiderCollapse.value) updateMenuCollapse(true)
+if (isTablet.value && showSiderCollapse.value) layoutStore.updateMenuCollapse(true)
 
 onMounted(() => {
     document.addEventListener('scroll', handleScroll, { passive: true })

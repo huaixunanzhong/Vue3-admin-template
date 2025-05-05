@@ -8,6 +8,8 @@ const Setting = {
     /**
      * 基础配置
      * */
+    // 项目名称
+    appName: 'Admin Plus',
     // 项目的 ID
     appID: 'app',
     // 网页标题的后缀，不需要设置为 false 或空
@@ -58,7 +60,12 @@ const Setting = {
         errorModalType: 'Message',
         // 请求拦截器配置
         requestConfig(_config: any, _util: any) {
-            return {}
+            console.log(_util.cookies.get('token'))
+            return {
+                headers: {
+                    token: _util.cookies.get('token')
+                }
+            }
         }
     },
     /**

@@ -3,50 +3,50 @@
         <router-view />
     </div>
 </template>
- <script lang="ts">
-    import { defineComponent } from 'vue';
-    import { mapMutations } from 'vuex';
+<script lang="ts" setup>
+import { onBeforeUnmount, onMounted } from 'vue'
+import { on, off } from '@/libs/dom'
+import { setMatchMedia } from '@/libs/assist'
+import { useLayoutStore } from '@/store'
+import { useInitApp } from '@/hooks'
 
-    import { on, off }  from '@/libs/dom';
-    import { setMatchMedia } from '@/libs/assist';
+defineOptions({ name: 'app' })
+setMatchMedia()
 
-    setMatchMedia();
+const layoutStore = useLayoutStore()
 
-    export default defineComponent({
-        name: 'app',
-        methods: {
-            ...mapMutations('admin/layout', [
-                'setDevice',
-                'setBodyHeight'
-            ]),
-            handleWindowResize () {
-                this.handleMatchMedia();
-                this.handleSetBodyHeight();
-            },
-            handleMatchMedia () {
-                const matchMedia = window.matchMedia;
+useInitApp()
 
-                if (matchMedia('(max-width: 600px)').matches) {
-                    this.setDevice('Mobile');
-                } else if (matchMedia('(max-width: 992px)').matches) {
-                    this.setDevice('Tablet');
-                } else {
-                    this.setDevice('Desktop');
-                }
-            },
-            handleSetBodyHeight () {
-                this.setBodyHeight(document.body.offsetHeight);
-            }
-        },
-        mounted () {
-            if (on) {
-                on(window, 'resize', this.handleWindowResize);
-            }
-            this.handleMatchMedia();
-            this.handleSetBodyHeight();
-        },
-        beforeUnmount () {
-            off(window, 'resize', this.handleWindowResize);
-        }
-    })
+const handleWindowResize = () => {
+    handleMatchMedia()
+    handleSetBodyHeight()
+}
+
+const handleMatchMedia = () => {
+    const matchMedia = window.matchMedia
+
+    if (matchMedia('(max-width: 600px)').matches) {
+        layoutStore.setDevice('Mobile')
+    } else if (matchMedia('(max-width: 992px)').matches) {
+        layoutStore.setDevice('Tablet')
+    } else {
+        layoutStore.setDevice('Desktop')
+    }
+}
+
+const handleSetBodyHeight = () => {
+    layoutStore.setBodyHeight(document.body.offsetHeight)
+}
+
+onMounted(() => {
+    if (on) {
+        on(window, 'resize', handleWindowResize)
+    }
+    handleMatchMedia()
+    handleSetBodyHeight()
+})
+
+onBeforeUnmount(() => {
+    off(window, 'resize', handleWindowResize)
+})
 </script>

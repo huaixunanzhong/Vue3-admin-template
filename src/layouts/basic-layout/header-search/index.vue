@@ -1,6 +1,13 @@
 <template>
-    <span v-if="isDesktop" class="i-layout-header-trigger i-layout-header-trigger-min i-layout-header-trigger-in i-layout-header-trigger-nohover">
-        <input class="i-layout-header-search" type="text" :placeholder="$t('basicLayout.search.placeholder')">
+    <span
+        v-if="isDesktop"
+        class="i-layout-header-trigger i-layout-header-trigger-min i-layout-header-trigger-in i-layout-header-trigger-nohover"
+    >
+        <input
+            class="i-layout-header-search"
+            type="text"
+            :placeholder="$t('basicLayout.search.placeholder')"
+        />
     </span>
     <Dropdown v-else trigger="click" class="i-layout-header-search-drop" ref="dropdown">
         <span class="i-layout-header-trigger i-layout-header-trigger-min">
@@ -10,32 +17,34 @@
             <DropdownMenu>
                 <Row align="middle">
                     <Col flex="auto" class="ivu-pl-4">
-                        <Input size="large" prefix="ios-search" :placeholder="$t('basicLayout.search.placeholder')" />
+                        <Input
+                            size="large"
+                            prefix="ios-search"
+                            :placeholder="$t('basicLayout.search.placeholder')"
+                        />
                     </Col>
                     <Col flex="80px" class="ivu-text-center">
-                        <span @click="handleCloseSearch">{{ $t('basicLayout.search.cancel') }}</span>
+                        <span @click="handleCloseSearch">
+                            {{ $t('basicLayout.search.cancel') }}
+                        </span>
                     </Col>
                 </Row>
             </DropdownMenu>
         </template>
     </Dropdown>
 </template>
- <script lang="ts">
-    import { defineComponent } from 'vue';
-    import { mapState } from 'vuex';
+<script lang="ts" setup>
+import { useTemplateRef } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useLayoutStore } from '@/store'
+defineOptions({ name: 'iHeaderSearch' })
 
-    export default defineComponent({
-        name: 'iHeaderSearch',
-        computed: {
-            ...mapState('admin/layout', [
-                'isDesktop',
-                'headerMenu'
-            ])
-        },
-        methods: {
-            handleCloseSearch () {
-                (this as any).$refs.dropdown['handleClick']();
-            }
-        }
-    })
+const { isDesktop } = storeToRefs(useLayoutStore())
+
+const dropdownRef = useTemplateRef('dropdown')
+
+const handleCloseSearch = () => {
+    // @ts-ignore
+    dropdownRef.value.handleClick()
+}
 </script>

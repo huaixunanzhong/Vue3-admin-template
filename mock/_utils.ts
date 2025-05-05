@@ -1,11 +1,21 @@
 import Mock from 'mockjs'
 import XEUtils from 'xe-utils'
-
-export type MockTokenItem = 'token_admin' | 'token_user'
+import { MockTokenItem, MockUserItem } from './data/type'
 
 /** 获取 50-300ms 的随机延时  */
 export const getDelayTime = () => {
     return XEUtils.random(50, 300)
+}
+
+export const matchUserData = (data: MockUserItem[], token: MockTokenItem) => {
+    switch (token) {
+        case 'A68NUPaXVBJYRStwvd9frcUn8rlf30h6':
+            return data.find((item) => item.info.access.includes('Super Admin'))
+        case 'A68NUPaXVBJYRStwvd9frcUn8rlf30h7':
+            return data.find((item) => item.info.access.includes('User'))
+        default:
+            return {}
+    }
 }
 
 /** 返回成功数据 */

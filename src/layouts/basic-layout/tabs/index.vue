@@ -3,7 +3,7 @@
         <div class="i-layout-tabs-main">
             <Tabs
                 type="card"
-                :model-value="current"
+                :model-value="pageStore.current"
                 :animated="false"
                 closable
                 :draggable="tabsOrder"
@@ -12,7 +12,7 @@
                 @on-drag-drop="handleDragDrop"
             >
                 <TabPane
-                    v-for="(page, index) in opened"
+                    v-for="(page, index) in pageStore.opened"
                     :key="index"
                     :label="(h: any) => tabLabel(h, page)"
                     :name="page.fullPath"
@@ -51,40 +51,31 @@
 <script lang="ts" setup>
 import { ref, resolveComponent, computed, onMounted, onBeforeUnmount } from 'vue'
 import menuSider from '@/menu/sider'
-import { useTranslateTitle } from '../hooks/useTranslateTitle.ts'
+import { useTranslateTitle } from '@/hooks'
 import { TabPane, Dropdown, DropdownMenu, DropdownItem, Icon } from 'view-ui-plus'
 import Setting from '@/setting'
 
 import { getAllSiderMenu } from '@/libs/system'
 
 import { cloneDeep } from 'lodash'
-import { useStore } from '@/store'
 import { useRouter } from 'vue-router'
-import type { OpenedUpdatePayload } from '@/store/modules/admin/modules/types/page.ts'
+import { storeToRefs } from 'pinia'
+import { useLayoutStore, useMenuStore, usePageStore } from '@/store'
 
 defineOptions({ name: 'i-tabs' })
 
 const { tTitle } = useTranslateTitle()
-const store = useStore()
 const router = useRouter()
+const { hideSider } = storeToRefs(useMenuStore())
+const pageStore = usePageStore()
+const { showTabsIcon, tabsFix, tabsReload, tabsOrder, headerFix, isMobile, menuCollapse } =
+    storeToRefs(useLayoutStore())
 
 const emit = defineEmits(['on-reload'])
 
 // 得到所有侧边菜单，并转为平级，查询图标用
 const allSiderMenu = ref(getAllSiderMenu(menuSider))
 const scrollTop = ref(0)
-
-const opened = computed(() => store.state.admin.page.opened)
-const current = computed(() => store.state.admin.page.current)
-
-const showTabsIcon = computed(() => store.state.admin.layout.showTabsIcon)
-const tabsFix = computed(() => store.state.admin.layout.tabsFix)
-const tabsReload = computed(() => store.state.admin.layout.tabsReload)
-const tabsOrder = computed(() => store.state.admin.layout.tabsOrder)
-const headerFix = computed(() => store.state.admin.layout.headerFix)
-const isMobile = computed(() => store.state.admin.layout.isMobile)
-const menuCollapse = computed(() => store.state.admin.layout.menuCollapse)
-const hideSider = computed(() => store.getters['admin/menu/hideSider'])
 
 const classes = computed(() => ({
     'i-layout-tabs-fix': tabsFix.value
@@ -110,17 +101,6 @@ const styles = computed(() => {
 
     return style
 })
-
-const close = (payload: { tagName: string }) => store.dispatch('admin/page/close', payload)
-const closeLeft = (payload: { pageSelect: string }) =>
-    store.dispatch('admin/page/closeLeft', payload)
-const closeRight = (payload: { pageSelect: string }) =>
-    store.dispatch('admin/page/closeRight', payload)
-const closeOther = (payload: { pageSelect: string }) =>
-    store.dispatch('admin/page/closeOther', payload)
-const closeAll = () => store.dispatch('admin/page/closeAll')
-const updateOpened = (payload: { opened: (OpenedUpdatePayload & { name: string })[] }) =>
-    store.dispatch('admin/page/updateOpened', payload)
 
 const tabLabel = (h: any, page: any) => {
     const title = h('span', tTitle(page.meta ? page.meta.title : '未命名') || '未命名')
@@ -163,12 +143,12 @@ const tabLabel = (h: any, page: any) => {
 }
 
 const handleClickTab = (tabName: any) => {
-    if (tabName === current.value) {
+    if (tabName === pageStore.current) {
         if (tabsReload.value) {
             emit('on-reload')
         }
     } else {
-        const page = opened.value.find((page: any) => page.fullPath === tabName)
+        const page = pageStore.opened.find((page: any) => page.fullPath === tabName)
         if (page) {
             const { name, params, query } = page
             if (page) router.push({ name, params, query })
@@ -176,7 +156,7 @@ const handleClickTab = (tabName: any) => {
     }
 }
 const handleClickClose = (tagName: string) => {
-    close({
+    pageStore.close({
         tagName
     })
 }
@@ -189,28 +169,28 @@ const handleScroll = () => {
 
 const handleClose = (name: 'left' | 'right' | 'other' | 'all') => {
     const params = {
-        pageSelect: current.value
+        pageSelect: pageStore.current
     }
     switch (name) {
         case 'left':
-            closeLeft(params)
+            pageStore.closeLeft(params)
             break
         case 'right':
-            closeRight(params)
+            pageStore.closeRight(params)
             break
         case 'other':
-            closeOther(params)
+            pageStore.closeOther(params)
             break
         case 'all':
-            closeAll()
+            pageStore.closeAll()
             break
     }
 }
 
 const handleDragDrop = (_name: any, _newName: any, a: any, b: any) => {
-    let _opened = cloneDeep(opened.value)
+    let _opened = cloneDeep(pageStore.opened)
     _opened.splice(b, 1, ..._opened.splice(a, 1, _opened[b]))
-    updateOpened({ opened: _opened })
+    pageStore.updateOpened({ opened: _opened })
 }
 
 onMounted(() => {
