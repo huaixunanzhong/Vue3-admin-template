@@ -5,29 +5,8 @@ import Setting from '@/setting'
 import menuSider from '@/menu/sider'
 import { useDbStore, useUserStore } from '@/store'
 import { getAllSiderMenu, includeArray } from '@/libs/system'
-import { useRouter } from 'vue-router'
+import { type RouteLocationNormalizedGeneric, useRouter } from 'vue-router'
 
-type meta = {
-    auth: boolean
-    closable: boolean
-    title: string
-}
-type Opened = {
-    index: any
-    params: Record<any, any>
-    query: Record<any, any>
-    path: string
-    fullPath: string
-    meta: meta
-    keepMeta: boolean
-    name: string
-}
-
-type Pool = {
-    meta: undefined | Record<any, any>
-    name: string
-    path: string
-}
 // 判定是否需要缓存
 const isKeepAlive = (data: any) => get(data, 'meta.cache', false)
 
@@ -37,9 +16,9 @@ const storeSetup = () => {
     const router = useRouter()
 
     // 可以在多页 tab 模式下显示的页面
-    const pool = ref<Pool[]>([])
+    const pool = ref<Page.Pool[]>([])
     // 当前显示的多页面列表
-    const opened = ref<Opened[]>(Setting.page.opened)
+    const opened = ref<Page.Opened[]>(Setting.page.opened)
     // 当前页面
     const current = ref('')
     // 需要缓存的页面 name
@@ -63,7 +42,7 @@ const storeSetup = () => {
             const valid: (0 | 1)[] = []
             // 处理数据
             opened.value = value
-                .map((opened: Opened) => {
+                .map((opened: Page.Opened) => {
                     // 忽略首页
                     if (opened.fullPath === '/index') {
                         valid.push(1)
@@ -93,6 +72,7 @@ const storeSetup = () => {
                         // @权限
                         const access = cloneDeep(userInfo.access)
                         // 给 access 强制加一个 hidden 的权限，否则菜单隐藏后，Tabs 页签会不显示该页签
+                        // @ts-ignore
                         access.push('hidden')
                         // 如果用户当前的权限，不是该 menu 对应的 权限，则过滤这个 Tab
                         if (access && !includeArray(find['auth'], access)) state = false
@@ -127,7 +107,7 @@ const storeSetup = () => {
         fullPath,
         meta,
         keepMeta = false
-    }: Omit<Opened, 'name' | 'path'>) => {
+    }: Omit<Page.Opened, 'name' | 'path'>) => {
         return new Promise<null>(async (resolve) => {
             // 更新页面列表某一项
             let page = opened.value[index]
@@ -150,7 +130,7 @@ const storeSetup = () => {
         fullPath,
         meta,
         keepMeta = false
-    }: Omit<Opened, 'name' | 'path'>) => {
+    }: Omit<Page.Opened, 'name' | 'path'>) => {
         return new Promise<null>(async (resolve) => {
             setTimeout(async () => {
                 // 更新当前项
@@ -190,13 +170,8 @@ const storeSetup = () => {
         })
     }
     /** 打开一个新的页面 */
-    const open = ({
-        name,
-        params,
-        query,
-        fullPath
-    }: Omit<Opened, 'path' | 'index' | 'meta' | 'keepMeta'>) => {
-        return new Promise<null>(async (resolve) => {
+    const open = ({ name, params, query, fullPath }: RouteLocationNormalizedGeneric) => {
+        return new Promise<void>(async (resolve) => {
             // 已经打开的页面
             let _opened = opened.value
             // 判断此页面是否已经打开 并且记录位置
@@ -208,6 +183,7 @@ const storeSetup = () => {
             })
             if (pageOpened) {
                 // 页面以前打开过
+                // @ts-ignore
                 await openedUpdate({
                     index: pageOpenedIndex,
                     params,
@@ -229,14 +205,14 @@ const storeSetup = () => {
             }
             currentSet(fullPath)
             // end
-            resolve(null)
+            resolve()
         })
     }
     /** 关闭一个 tag (关闭一个页面) */
     const close = ({ tagName }: { tagName: string }) => {
         return new Promise(async (resolve) => {
             // 下个新的页面
-            let newPage: Opened | Record<string, any> = opened.value[0]
+            let newPage: Page.Opened | Record<string, any> = opened.value[0]
             const isCurrent = current.value === tagName
             // 如果关闭的页面就是当前显示的页面
             if (isCurrent) {
@@ -396,6 +372,7 @@ const storeSetup = () => {
     // keepAlive
     /** 从已经打开的页面记录中更新需要缓存的页面记录 */
     const keepAliveRefresh = () => {
+        // @ts-ignore
         keepAlive.value = opened.value
             .filter((item: any) => isKeepAlive(item))
             .map((e: any) => e.name)
@@ -413,6 +390,7 @@ const storeSetup = () => {
     /** 增加一个页面的缓存设置 */
     const keepAlivePush = (name: any) => {
         const keep = [...keepAlive.value]
+        // @ts-ignore
         keep.push(name)
         keepAlive.value = keep
     }

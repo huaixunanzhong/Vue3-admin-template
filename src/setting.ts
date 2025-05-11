@@ -60,7 +60,6 @@ const Setting = {
         errorModalType: 'Message',
         // 请求拦截器配置
         requestConfig(_config: any, _util: any) {
-            console.log(_util.cookies.get('token'))
             return {
                 headers: {
                     token: _util.cookies.get('token')

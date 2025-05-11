@@ -13,23 +13,32 @@ import {
     getNativeMenuSider,
     getNativeMenuHeader
 } from '@/libs/system'
-import { useRouter } from 'vue-router'
+import {
+    type RouteLocationNormalizedLoaded,
+    type RouteLocationNormalizedLoadedGeneric,
+    useRouter
+} from 'vue-router'
 import { useUserStore } from '@/store'
 import { MenuList } from '@/api/menu'
 
-// 根据 menu 配置的权限，过滤菜单
-function filterMenu(menuList: Record<string, any>[], access: any, lastList: any) {
+/** 根据 menu 配置的权限，过滤菜单 */
+function filterMenu(menuList: Menu.MenuItem[], access: User.AccessType[], lastList: unknown[]) {
     menuList.forEach((menu) => {
         let menuAccess = menu.auth
 
         if (!menuAccess || includeArray(menuAccess, access)) {
-            let newMenu: any = {}
+            let newMenu = {}
             for (let i in menu) {
+                // @ts-ignore
                 if (i !== 'children') newMenu[i] = cloneDeep(menu[i])
             }
-            if (menu.children && menu.children.length) newMenu.children = []
+            if (menu.children && menu.children.length) {
+                // @ts-ignore
+                newMenu.children = []
+            }
 
             lastList.push(newMenu)
+            // @ts-ignore
             menu.children && filterMenu(menu.children, access, newMenu.children)
         }
     })
@@ -41,17 +50,17 @@ const storeSetup = () => {
     const userStore = useUserStore()
 
     // 顶部菜单
-    const header = ref<App.HeaderItem[]>([])
+    const header = ref<Menu.HeaderItem[]>([])
     // 侧栏菜单
-    const sider = ref([])
+    const sider = ref<Menu.MenuItem[]>([])
     // 当前顶栏菜单的 name
     const headerName = ref('')
     // 当前所在菜单的 path
     const activePath = ref('')
     // 展开的子菜单 name 集合
-    const openNames = ref([])
+    const openNames = ref<string[]>([])
     // 所有的菜单
-    const menuSider = ref([])
+    const menuSider = ref<Menu.MenuItem[]>([])
     // 侧边菜单徽标
     const siderMenuBadge = ref(Setting.badge.siderMenuBadge)
     // 顶栏菜单徽标
@@ -74,11 +83,11 @@ const storeSetup = () => {
         // @权限
         const access = userInfo.access
         if (access && access.length) {
-            return header.value.filter((item: any) => {
+            return header.value.filter((item) => {
                 let state = true
                 if (item.auth && !includeArray(item.auth, access)) state = false
                 if (item.children && item.children.length) {
-                    item.children = item.children.filter((child: any) => {
+                    item.children = item.children.filter((child) => {
                         let state = true
                         if (child.auth && !includeArray(child.auth, access)) state = false
                         return state
@@ -91,7 +100,7 @@ const storeSetup = () => {
                 let state = true
                 if (item.auth && item.auth.length) state = false
                 if (item.children && item.children.length) {
-                    item.children = item.children.filter((child: any) => {
+                    item.children = item.children.filter((child) => {
                         let state = true
                         if (child.auth && child.auth.length) state = false
                         return state
@@ -108,13 +117,14 @@ const storeSetup = () => {
     /** 在当前 header 下，是否隐藏 sider（及折叠按钮） */
     const hideSider = computed(() => {
         let visible = false
-        if (currentHeader.value && 'hideSider' in currentHeader.value)
+        if (currentHeader.value && 'hideSider' in currentHeader.value) {
             visible = currentHeader.value.hideSider
+        }
         return visible
     })
 
     /** 设置侧边栏菜单 */
-    const setSider = (menu: any) => {
+    const setSider = (menu: Menu.MenuItem[]) => {
         sider.value = menu
     }
     /** 设置顶栏菜单 */
@@ -122,20 +132,20 @@ const storeSetup = () => {
         header.value = menu
     }
     /** 设置当前顶栏菜单 name name:headerName */
-    const setHeaderName = (name: any) => {
+    const setHeaderName = (name: string) => {
         headerName.value = name
     }
     /** 设置当前所在菜单的 path，用于侧栏菜单高亮当前项  path: fullPath*/
-    const setActivePath = (path: any) => {
+    const setActivePath = (path: string) => {
         activePath.value = path
     }
     /** 设置当前所在菜单的全部展开父菜单的 names 集合 names: openNames */
-    const setOpenNames = (names: any) => {
+    const setOpenNames = (names: string[]) => {
         openNames.value = names
     }
     /** 设置所有菜单 */
-    const setMenuSider = (_menuSider: any) => {
-        menuSider.value = _menuSider
+    const setMenuSider = (menuSiderList: Menu.MenuItem[]) => {
+        menuSider.value = menuSiderList
     }
     /** 设置全部的侧边菜单的徽标 */
     const setAllSiderMenuBadge = (data: any) => {
@@ -146,9 +156,11 @@ const storeSetup = () => {
         const _siderMenuBadge = cloneDeep(siderMenuBadge.value)
         const menuIndex = _siderMenuBadge.findIndex((item: any) => item.path === path)
         if (menuIndex >= 0) {
+            // @ts-ignore
             _siderMenuBadge[menuIndex] = badge
             siderMenuBadge.value = _siderMenuBadge
         } else {
+            // @ts-ignore
             siderMenuBadge.value.push(badge)
         }
     }
@@ -166,9 +178,11 @@ const storeSetup = () => {
         const _headerMenuBadge = cloneDeep(headerMenuBadge.value)
         const menuIndex = _headerMenuBadge.findIndex((item: any) => item.path === path)
         if (menuIndex >= 0) {
+            // @ts-ignore
             _headerMenuBadge[menuIndex] = badge
             headerMenuBadge.value = _headerMenuBadge
         } else {
+            // @ts-ignore
             headerMenuBadge.value.push(badge)
         }
     }
@@ -179,7 +193,7 @@ const storeSetup = () => {
     }
 
     /** 设置菜单（动态+静态） */
-    const setMenuList = (to = {}) => {
+    const setMenuList = (to: RouteLocationNormalizedLoaded) => {
         // 只动态菜单设置顶栏菜单
         if (Setting.dynamicMenu) {
             // 设置顶栏菜单
@@ -187,8 +201,9 @@ const storeSetup = () => {
             setHeader(menuHeaderList)
         }
         // 设置侧边栏菜单
-        const menuSiderList = Setting.dynamicMenu ? getNativeMenuSider() : [...menuSliders]
-
+        const menuSiderList: Menu.MenuItem[] = Setting.dynamicMenu
+            ? getNativeMenuSider()
+            : [...menuSliders]
         let path = to.matched[to.matched.length - 1].path
 
         let headerName = getHeaderName(path, menuSiderList)
@@ -209,10 +224,9 @@ const storeSetup = () => {
             setOpenNames(openNames)
         }
     }
-    /** 动态获取菜单 */
-    /** 是否加载菜单，需传 $route 信息 */
-    const getMenuList = (loadMenu: any) => {
-        return new Promise((resolve, reject) => {
+    /** 动态获取菜单 是否加载菜单，需传 $route 信息 */
+    const getMenuList = (loadMenu: RouteLocationNormalizedLoadedGeneric | boolean) => {
+        return new Promise<void>((resolve, reject) => {
             MenuList()
                 .then((res: any) => {
                     setNativeMenuHeader(res['header'])
@@ -221,7 +235,7 @@ const storeSetup = () => {
                         const to = loadMenu === true ? router.currentRoute.value : loadMenu
                         setMenuList(to)
                     }
-                    resolve(null)
+                    resolve()
                 })
                 .catch((err) => {
                     reject(err)

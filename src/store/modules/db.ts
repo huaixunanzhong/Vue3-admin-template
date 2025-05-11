@@ -103,6 +103,7 @@ const storeSetup = () => {
                 util.db.get(
                     pathInit({
                         dbName: 'database',
+                        // @ts-ignore
                         path: `$page.${router['app'].$route[basis]}`,
                         user,
                         defaultValue: {}
@@ -118,6 +119,7 @@ const storeSetup = () => {
                 util.db.get(
                     pathInit({
                         dbName: 'database',
+                        // @ts-ignore
                         path: `$page.${router['app'].$route[basis]}`,
                         user,
                         validator: () => false,
@@ -134,6 +136,7 @@ const storeSetup = () => {
                 util.db.get(
                     pathInit({
                         dbName: 'database',
+                        // @ts-ignore
                         path: `$page.${router['app'].$route[basis]}.$data`,
                         user,
                         validator: () => false,
@@ -152,6 +155,7 @@ const storeSetup = () => {
                         .get(
                             pathInit({
                                 dbName: 'database',
+                                // @ts-ignore
                                 path: `$page.${router['app'].$route[basis]}.$data`,
                                 user,
                                 defaultValue: cloneDeep(instance.$data)
@@ -169,6 +173,7 @@ const storeSetup = () => {
                 util.db.get(
                     pathInit({
                         dbName: 'database',
+                        // @ts-ignore
                         path: `$page.${router['app'].$route[basis]}.$data`,
                         user,
                         validator: () => false,

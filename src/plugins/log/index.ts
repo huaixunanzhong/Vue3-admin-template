@@ -1,8 +1,9 @@
 import util from '@/libs/util'
 import { useLogStore } from '@/store'
+import { App } from 'vue'
 
 export default {
-    install(app: any, _options: any) {
+    install(app: App, _options: any) {
         // 快速打印 log
         app.config.globalProperties.$log = {
             ...util.log,

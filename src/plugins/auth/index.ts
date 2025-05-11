@@ -6,16 +6,17 @@
 
 import { includeArray } from '@/libs/system'
 import { useUserStore } from '@/store'
+import { Directive } from 'vue'
 
-export default {
-    mounted(el: any, binding: any, _vnode: any) {
+const permissionDirective: Directive<HTMLElement, string[]> = {
+    mounted(el, binding) {
         const userStore = useUserStore()
         const { value } = binding
         const access = userStore.userInfo.access
 
         let isPermission = false
 
-        if (value && value instanceof Array && value.length && access && access.length) {
+        if (value && Array.isArray(value) && value.length && access && access.length) {
             isPermission = includeArray(value, access)
         }
 
@@ -24,3 +25,5 @@ export default {
         }
     }
 }
+
+export default permissionDirective

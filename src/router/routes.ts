@@ -1,7 +1,7 @@
-import { h } from 'vue';
+import { h } from 'vue'
 
-import dashboard from './modules/dashboard';
-import BasicLayout from '@/layouts/basic-layout/index.vue';
+import dashboard from './modules/dashboard'
+import BasicLayout from '@/layouts/basic-layout/index.vue'
 
 /**
  * 在主框架内显示
@@ -37,8 +37,8 @@ const frameIn = [
                 name: 'refresh',
                 hidden: true,
                 component: {
-                    beforeRouteEnter (_to:any, from:any, next:any) {
-                        next((instance:any) => instance.$router.replace(from.fullPath));
+                    beforeRouteEnter(_to: any, from: any, next: any) {
+                        next((instance: any) => instance.$router.replace(from.fullPath))
                     },
                     render: () => h(null as any)
                 }
@@ -49,8 +49,10 @@ const frameIn = [
                 name: 'redirect',
                 hidden: true,
                 component: {
-                    beforeRouteEnter (_to:any, from:any, next:any) {
-                        next((instance:any) => instance.$router.replace(JSON.parse(from.params.route)));
+                    beforeRouteEnter(_to: any, from: any, next: any) {
+                        next((instance: any) =>
+                            instance.$router.replace(JSON.parse(from.params.route))
+                        )
                     },
                     render: () => h(null as any)
                 }
@@ -58,7 +60,7 @@ const frameIn = [
         ]
     },
     dashboard
-];
+]
 
 /**
  * 在主框架之外显示
@@ -93,7 +95,7 @@ const frameOut = [
         },
         component: () => import('@/pages/account/register/result/index.vue')
     }
-];
+]
 
 /**
  * 错误页面
@@ -124,16 +126,12 @@ const errorPage = [
         },
         component: () => import('@/pages/system/error/404/index.vue')
     }
-];
+]
 
 // 导出需要显示菜单的
-export const frameInRoutes = frameIn;
+export const frameInRoutes = frameIn
 
 // 重新组织后导出
-const routes: any[] = [
-    ...frameIn,
-    ...frameOut,
-    ...errorPage
-];
+const routes = [...frameIn, ...frameOut, ...errorPage]
 
-export default routes;
+export default routes

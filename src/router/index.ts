@@ -16,7 +16,7 @@ import routes from './routes'
 import { usePageStore } from '@/store'
 
 // 导出路由 在 main.ts 里使用
-const router: any = createRouter({
+const router = createRouter({
     history:
         Setting.routerMode === 'history'
             ? createWebHistory(Setting.routerBase)
@@ -31,10 +31,10 @@ const router: any = createRouter({
  * 权限验证
  */
 
-router.beforeEach((to: any, _from: any, next: any) => {
+router.beforeEach((to, _from, next) => {
     if (Setting.showProgressBar) ViewUIPlus.LoadingBar.start()
     // 判断是否需要登录才可以进入
-    if (to.matched.some((_: any) => _.meta.auth)) {
+    if (to.matched.some((_) => _.meta.auth)) {
         // 这里依据 token 判断是否登录，可视情况修改
         const token = util.cookies.get('token')
 
@@ -56,7 +56,7 @@ router.beforeEach((to: any, _from: any, next: any) => {
     }
 })
 
-router.afterEach((to: any) => {
+router.afterEach((to) => {
     const pageStore = usePageStore()
     if (Setting.showProgressBar) ViewUIPlus.LoadingBar.finish()
     // 多页控制 打开新的页面

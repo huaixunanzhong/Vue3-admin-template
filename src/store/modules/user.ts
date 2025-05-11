@@ -4,7 +4,7 @@ import { useDbStore } from '@/store'
 const storeSetup = () => {
     const dbStore = useDbStore()
     // 用户信息
-    const userInfo = ref<User.UserInfo | {}>({})
+    const userInfo = ref<Partial<User.UserInfo>>({})
     /** 设置用户数据 */
     const set = (info: User.UserInfo | {}) => {
         return new Promise<void>((resolve) => {

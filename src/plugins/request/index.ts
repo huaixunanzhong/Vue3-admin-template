@@ -6,14 +6,14 @@ import { useLogStore } from '@/store'
 import { Message, Notice } from 'view-ui-plus'
 
 // 创建一个错误
-function errorCreate(msg: any) {
+function errorCreate(msg: string) {
     const err = new Error(msg)
     errorLog(err)
     throw err
 }
 
 // 记录和显示错误
-function errorLog(err: any) {
+function errorLog(err: Error) {
     const logStore = useLogStore()
     // 添加到日志
     logStore.push({
@@ -65,7 +65,6 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
     (response: AxiosResponse<Api.BaseResult>) => {
-        console.log(response)
         // dataAxios 是 axios 返回数据中的 data
         const dataAxios = response.data
         // 这个状态码是和后端约定的
@@ -92,7 +91,6 @@ service.interceptors.response.use(
         }
     },
     (error) => {
-        console.log(error, 'error12')
         if (error && error.response) {
             switch (error.response.status) {
                 case 400:

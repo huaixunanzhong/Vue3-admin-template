@@ -1,15 +1,19 @@
-import { nextTick } from 'vue'
+import { App, ComponentPublicInstance, nextTick } from 'vue'
 import util from '@/libs/util'
 import { useLogStore } from '@/store'
 
 export default {
-    install(app: any, _options: any) {
-        app.config.errorHandler = function (error: any, instance: any, info: any) {
+    install(app: App, _options: any) {
+        app.config.errorHandler = function (
+            error: unknown,
+            instance: ComponentPublicInstance | null,
+            info: string
+        ) {
             const logStore = useLogStore()
             nextTick(() => {
                 // store 追加 log
                 logStore.push({
-                    message: `${info}: ${error.message}`,
+                    message: `${info}: ${(error as Error).message}`,
                     type: 'error',
                     meta: {
                         error

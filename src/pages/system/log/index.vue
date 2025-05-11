@@ -39,7 +39,7 @@
     </div>
 </template>
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { getCurrentInstance, ref } from 'vue'
 import { get } from 'lodash'
 import { useLogStore } from '@/store'
 import { storeToRefs } from 'pinia'
@@ -76,13 +76,16 @@ const columns = ref([
 const logStore = useLogStore()
 const { log } = storeToRefs(logStore)
 
-const handleMore = (log: any) => {
-    const self: any = this
-    self.$Notice.info({
+const { proxy } = getCurrentInstance()!
+
+const handleMore = (log: Log.LogStateItem) => {
+    const self = proxy
+    self!.$Notice.info({
         title: '提示',
         desc: '请在浏览器控制台查看完整日志'
     })
-    self['$log'].capsule('Admin Plus', '完整日志内容', 'primary')
+    // @ts-ignore
+    self!.$log.capsule('Admin Plus', '完整日志内容', 'primary')
     console.group('完整日志')
     console.log('message ', log.message)
     console.log('time: ', log.time)
